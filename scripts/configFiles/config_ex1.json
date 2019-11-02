@@ -1,0 +1,13 @@
+{
+ "fileName":"ex.csv",
+ "benchmark": true,
+ "target": "event",
+ "jobs": [
+    {"method": "UNIVARIATE_TRANSFORMATION",
+     "classifier": "TSF"
+    },
+    {"method": "UNIVARIATE_TRANSFORMATION",
+     "classifier": "PF"
+    }
+  ]
+}
