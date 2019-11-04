@@ -1,0 +1,17 @@
+{
+ "fileName":"../scripts/data/sample-Sheet1.csv",
+ "benchmark": true,
+ "target": "event",
+ "percentTrain":0.5,
+ "jobs": [
+    {"method": "UNIVARIATE_TRANSFORMATION",
+     "classifier": "TSF_CLF"
+    },
+    {"method": "UNIVARIATE_TRANSFORMATION",
+     "classifier": "KNN_CLF"
+    },
+    {"method": "UNIVARIATE_TRANSFORMATION",
+     "classifier": "KNN_CLF"
+    }
+  ]
+}
