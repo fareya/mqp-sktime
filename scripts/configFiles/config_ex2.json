@@ -1,7 +1,7 @@
 {
- "fileName":"../scripts/data/sample-Sheet1.csv",
- "benchmark": true,
- "target": "event",
+ "filePath":"../scripts/data/sample-Sheet1.csv",
+ "loggingEnabled": true,
+ "targetCol": "event",
  "percentTrain":0.5,
  "jobs": [
     {"method": "UNIVARIATE_TRANSFORMATION",
@@ -15,3 +15,4 @@
     }
   ]
 }
+

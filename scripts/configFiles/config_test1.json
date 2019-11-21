@@ -1,0 +1,13 @@
+{
+ "filePath":"../scripts/data/sample-Sheet2.csv",
+ "loggingEnabled": true,
+ "targetCol": "event",
+ "percentTrain":0.8,
+ "jobs": [
+    {"method": "UNIVARIATES_TRANSFORMATION",
+     "classifier": "TSF_CLF"
+    },
+    {"method": "SHAPELET_TRANSFORM"
+    }
+  ]
+}

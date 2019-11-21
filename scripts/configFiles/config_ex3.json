@@ -1,0 +1,12 @@
+{
+ "filePath":"../scripts/data/001-SART-August2017-MB.csv",
+ "loggingEnabled": true,
+ "targetCol": "event",
+ "percentTrain":0.5,
+ "jobs": [
+    {"method": "UNIVARIATE_TRANSFORMATION",
+     "classifier": "TSF_CLF"
+    }
+  ]
+}
+
