@@ -1,0 +1,14 @@
+{
+ "filePath":"../scripts/data/2013e.csv",
+ "loggingEnabled": true,
+ "targetCol": "event",
+ "percentTrain":0.8,
+ "jobs": [
+    {"method": "UNIVARIATE_TRANSFORMATION",
+     "classifier": "TSF_CLF"
+    },
+    {"method": "SHAPELET_TRANSFORM"
+    }
+  ]
+}
+

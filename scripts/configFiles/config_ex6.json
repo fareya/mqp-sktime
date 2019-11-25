@@ -1,0 +1,13 @@
+{
+ "filePath":"../scripts/data/sample-Sheet1.csv",
+ "loggingEnabled": true,
+ "targetCol": "event",
+ "percentTrain":0.8,
+ "jobs": [
+    {"method": "UNIVARIATE_TRANSFORMATION",
+     "classifier": "TSF_CLF",
+     "parameters":["n_estimators",15,"min_samples_split",3, "min_samples_leaf",2]
+    }
+  ]
+}
+
