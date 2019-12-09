@@ -35,6 +35,26 @@ TO_LOG= True
 
 TSF_default_parameters={'base_estimator':None, 'n_estimators':10, 'criterion':'entropy', 'max_depth':None, 'min_samples_split':2, 'min_samples_leaf':1, 'min_weight_fraction_leaf':0.0, 'max_features':None, 'max_leaf_nodes':None, 'min_impurity_decrease':0.0, 'min_impurity_split':None, 'bootstrap':False, 'oob_score':False, 'n_jobs':None, 'random_state':None, 'verbose':0, 'warm_start':False, 'class_weight':None}
 
+#proximity forest 
+#documentation not currently available 
+PF_default_parameters={'n_trees':10}
+
+#nearest neighbors 
+KNN_default_parameters={'metric':'dtw'}
+
+#rise 
+RISE_defauly_parameters={'n_trees':200, 'random_state':None, 'min_interval':16, 'acf_lag':100, 'acf_min_values':4}
+#RandomIntervalSpectralForest(n_trees=200, random_state=None, min_interval=16, acf_lag=100, acf_min_values=4)
+
+#BOSS
+BOSS_default_parameters={'randomised_ensemble':False, 'n_parameter_samples':250, 'random_state':None, 'threshold':0.92, 'max_ensemble_size':None, 'max_win_len_prop':1, 'time_limit':0, 'word_lengths':None, 'alphabet_size':4, 'min_window':10, 'norm_options':None}
+#BOSSEnsemble(randomised_ensemble=False, n_parameter_samples=250, random_state=None, threshold=0.92, max_ensemble_size=None, max_win_len_prop=1, time_limit=0, word_lengths=None, alphabet_size=4, min_window=10, norm_options=None)
+
+#shapelet stuff
+SHAPELET_default_parameters={}
+
+
+
 def list_to_dict(a): 
     it = iter(a) 
     res_dct = dict(zip(it, it)) 
@@ -88,6 +108,20 @@ def reformatData(target, file_name):
     return df_nested, np_labels 
 
 # splitting the test train based on the test train that is specified 
+def classifierBuilder(clf_name,params):
+    if(clf_name=='TSF_CLF'):
+        TSF_params=TSF_default_parameters
+        clf_params_dict=list_to_dict(params)
+        for e in clf_params_dict:
+            TSF_params[e]=clf_params_dict[e]
+        clf= TimeSeriesForestClassifier(base_estimator=TSF_params['base_estimator'], n_estimators=TSF_params['n_estimators'], criterion=TSF_params['criterion'], max_depth=TSF_params['max_depth'], min_samples_split=TSF_params['min_samples_split'], min_samples_leaf=TSF_params['min_samples_leaf'], min_weight_fraction_leaf=TSF_params['min_weight_fraction_leaf'], max_features=TSF_params['max_features'], max_leaf_nodes=TSF_params['max_leaf_nodes'], min_impurity_decrease=TSF_params['min_impurity_decrease'], min_impurity_split=TSF_params['min_impurity_split'], bootstrap=TSF_params['bootstrap'], oob_score=TSF_params['oob_score'], n_jobs=TSF_params['n_jobs'], random_state=TSF_params['random_state'], verbose=TSF_params['verbose'], warm_start=TSF_params['warm_start'], class_weight=TSF_params['class_weight'])
+    elif (clf_name=='KNN_CLF'):
+        clf = KNeighborsTimeSeriesClassifier(metric='dtw')
+    elif (clf_name == 'PF_CLF'):    
+        clf = ProximityForest(n_trees=10)
+    else: 
+        raise ValueError("Specified classifier is not an option")
+    return clf
 # i think that there might be issues with this function 
 def splitTestTrain(X, y, percent_train):
     msk = np.random.rand(len(X)) < percent_train
@@ -100,36 +134,32 @@ def splitTestTrain(X, y, percent_train):
 
 
 #concatenate multivariate time series and classify using the specified classifier 
-def concatenateMethod(classifier_num, X, y, percent_train):#,clf_parameters):
+def concatenateMethod(classifier, X, y, percent_train,clf_parameters=[]):
     print("classification...")
     concatenation_instance=ColumnConcatenator()
     X_concatenated=concatenation_instance.fit(X).transform(X)
     Xtrain, ytrain, Xtest, ytest= splitTestTrain(X_concatenated,y,percent_train)
-    if(classifier_num==classifier['TSF_CLF']):
-        #TSF_params=TSF_default_parameters
-        #clf_params_dict=list_to_dict(clf_parameters)
-        #print(TSF_params)
-        #for e in clf_params_dict:
-         #   TSF_params[e]=clf_params_dict[e]
-        #print(TSF_params)
-       # clf= TimeSeriesForestClassifier(base_estimator=TSF_params['base_estimator'], n_estimators=TSF_params['n_estimators'], criterion=TSF_params['criterion'], max_depth=TSF_params['max_depth'], min_samples_split=TSF_params['min_samples_split'], min_samples_leaf=TSF_params['min_samples_leaf'], min_weight_fraction_leaf=TSF_params['min_weight_fraction_leaf'], max_features=TSF_params['max_features'], max_leaf_nodes=TSF_params['max_leaf_nodes'], min_impurity_decrease=TSF_params['min_impurity_decrease'], min_impurity_split=TSF_params['min_impurity_split'], bootstrap=TSF_params['bootstrap'], oob_score=TSF_params['oob_score'], n_jobs=TSF_params['n_jobs'], random_state=TSF_params['random_state'], verbose=TSF_params['verbose'], warm_start=TSF_params['warm_start'], class_weight=TSF_params['class_weight'])
-        clf= TimeSeriesForestClassifier(n_estimators=10)
-        clf.fit(Xtrain, ytrain)
-        return clf.score(Xtest,ytest)
-    elif (classifier_num==classifier['KNN_CLF']):
-        knn = KNeighborsTimeSeriesClassifier(metric='dtw')
-        knn.fit(Xtrain, ytrain)
-        return knn.score(Xtest, ytest)
-    elif (classifier_num == classifier['PF_CLF']):    
-        pf = ProximityForest(n_trees=10)
-        pf.fit(Xtrain, ytrain)
-        return pf.score(Xtest, ytest)
-    else: 
-        raise ValueError("Specified classifier is not an option")
+    clf= classifierBuilder(classifier,clf_parameters)
+    clf.fit(Xtrain,ytrain)
+    return clf.score(Xtest,ytest)
 
+def columnEnsembleMethod(classifier_list,X,y,percent_train,clf_parameters=[]):
+    #generate a tuple 
+    #use the classifier generator 
+    estimator_list=[]
+    Xtrain, ytrain, Xtest, ytest= splitTestTrain(X,y,percent_train)
+    for i in range (len(classifier_list)):
+        params=[]
+        built_clf=classifierBuilder(classifier_list[i]['classifier'],params)
+        num=classifier_list[i]['columnNum']
+        name=classifier_list[i]['classifier']+str(num)
+        estimator_list.append((name,built_clf,[num]))  
+    clf = ColumnEnsembleClassifier(estimators=estimator_list)
+    clf.fit(Xtrain, ytrain)
+    return clf.score(Xtest, ytest)
 
 #multivariate shapelet method         
-def multivariateShapeletMethod(X, y, percent_train, time_contract=0.5):
+def multivariateShapeletMethod(X, y, percent_train, time_contract=0.5,clf_parameters=[]):
     Xtrain, ytrain, Xtest, ytest= splitTestTrain(X,y,percent_train)
     clf = ShapeletTransformClassifier(time_contract_in_mins=time_contract)
     clf.fit(Xtrain, ytrain)
@@ -157,7 +187,9 @@ def main():
     
     
     if(TO_LOG):
-        file_write_name=str(date.today())+":::"+str(datetime.time(datetime.now()))+'.txt'
+        #assumes that there is a local "logs" directory (if there isnt then you can go ahead and remove the first component of this string concatenation 
+        #or just create a try catch 
+        file_write_name="logs/"+str(date.today())+":::"+str(datetime.time(datetime.now()))+'.txt'
         file_write= open(file_write_name,"w+")
         file_write.write(json_file_name+'\n')
         file_write.write(file_name+'\n\n')
@@ -166,18 +198,22 @@ def main():
     
     X, y=reformatData(target,file_name)
 
-    
     for job in data['jobs']:
         acc= 0
         print("JOB:")
         print(job)
         start_time=time.time()
+        params=[]
+        if ('parameters' in job):
+            params=job['parameters']
         if(job['method']=='UNIVARIATE_TRANSFORMATION'):
-            acc= concatenateMethod(classifier[job['classifier']], X, y, percent_train)#,job['parameters'])
+            acc= concatenateMethod(job['classifier'], X, y, percent_train, clf_parameters=params)
         elif(job['method']=='SHAPELET_TRANSFORM'):
-            acc= multivariateShapeletMethod(X, y, 0.8)
+            acc= multivariateShapeletMethod(X, y, percent_train,clf_parameters=params)
+        elif(job['method']=='COLUMN_ENSEMBLE'):
+            acc=columnEnsembleMethod(job['ensembleInfo'],X,y,percent_train,clf_parameters=params)
         else: 
-            raise ValueError(str(job['method']) +" method does not exist")
+            raise ValueError(str(job['method']) +" classification method does not exist")
         print(acc)
         print("Total Time")
         end_time= time.time() - start_time
@@ -185,8 +221,8 @@ def main():
               
         if(TO_LOG):
             file_write.write('Job: '+str(job)+'\n') 
-            file_write.write("Accuracy : "+str(acc)+'\n')
-            file_write.write('Total Time : '+str(end_time)+'\n\n')
+            file_write.write("Accuracy : "+str(round(acc*10,2))+'%\n')
+            file_write.write('Total Time : '+str(round(end_time,2))+' seconds\n\n')
 
 
     if(TO_LOG):

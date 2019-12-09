@@ -7,7 +7,11 @@
     {"method": "UNIVARIATE_TRANSFORMATION",
      "classifier": "TSF_CLF"
     },
-    {"method": "SHAPELET_TRANSFORM"
+    {"method": "UNIVARIATE_TRANSFORMATION",
+     "classifier": "KNN_CLF"
+    },
+    {"method": "UNIVARIATE_TRANSFORMATION",
+     "classifier": "PF_CLF"
     }
   ]
 }
